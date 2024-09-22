@@ -12,9 +12,47 @@ import { useFrame, useThree } from "@react-three/fiber";
 import IslandScene from "../assets/3d/island.glb";
 import { a } from "@react-spring/three";
 
-const Island = (props) => {
+const Island = ({ isRotating, setIsRotating, ...props }) => {
   const islandRef = useRef();
+
+  const { gl, viewport } = useThree();
+
   const { nodes, materials } = useGLTF(IslandScene);
+
+  const lastX = useRef(0);
+  const rotationSpeed = useRef(0);
+  const dumpingFactor = 0.95;
+
+  const handlePointerDown = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setIsRotating(true);
+
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+
+    lastX.current = clientX;
+  };
+
+  const handlePointerUp = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setIsRotating(false);
+
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+
+    const delta = (clientX - lastX.current) / viewport.width;
+
+    islandRef.current.rotation.y += delta * 0.01 * Math.PI;
+
+    lastX.current = clientX;
+  };
+
+  const handlePointerMove = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setIsRotating(true);
+  };
+
   return (
     <a.group ref={islandRef} {...props}>
       <mesh
